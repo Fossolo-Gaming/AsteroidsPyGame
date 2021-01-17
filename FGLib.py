@@ -1,3 +1,8 @@
+#---------------------------------------------------------------+
+#                Fossolo-Gaming Library                         |
+#---------------------------------------------------------------+
+
+# This library is intended to work on top of pygame that is a Python library
 
 # +-------------------------+
 # |       FGLib             |
@@ -11,6 +16,22 @@ import pygame, sys, os
 import time, random, math
 from pygame.locals import *
 from pygame.time import Clock
+
+# ------------------------
+# Utility functions
+# ------------------------
+
+def AngleToVector(angle):
+    rad = math.radians(angle)
+    return (math.cos(rad), math.sin(rad))
+
+def VectorToAngle(vect):
+    rad = math.atan2(vect[1], vect[0])
+    return math.degrees(rad)    
+
+# ------------------------
+# Classes
+# ------------------------
 
 class Image():
     def __init__(self, filename):
@@ -96,6 +117,7 @@ class Sprite(pygame.sprite.DirtySprite):
     def __init__(self, image):
         pygame.sprite.DirtySprite.__init__(self)
         self.pos = [0,0]
+        self.fpos = [0.0, 0.0]
         self.image = None
         self.image0 = None
         self.rotAngle = 0.
@@ -105,11 +127,13 @@ class Sprite(pygame.sprite.DirtySprite):
 
     def setImage(self, image):
         self.image = image.image
-        self.image0 = image.image
+        self.image0 = None
         self.rect = self.image.get_rect()
         self.dirty = 2
 
     def setAngle(self, angle):
+        if self.image0==None:
+            self.image0 = self.image
         self.rotAngle = angle
         self.image = pygame.transform.rotate(self.image0, self.rotAngle + self.image0Angle)         
         rect = self.rect
@@ -117,20 +141,25 @@ class Sprite(pygame.sprite.DirtySprite):
         self.rect.center = rect.center
 
     def setPosition(self, x, y):
+        self.fpos = [x, y]
         self.rect[0] = x
         self.rect[1] = y
 
     def moveLeft(self, distance):
-        self.rect[0] -= distance
+        self.fpos[0] -= distance
+        self.rect[0] = self.fpos[0]
 
     def moveRight(self, distance):
-        self.rect[0] += distance
+        self.fpos[0] += distance
+        self.rect[0] = self.fpos[0]
 
     def moveUp(self, distance):
-        self.rect[1] -= distance
+        self.fpos[1] -= distance
+        self.rect[1] = self.fpos[1]
 
     def moveDown(self, distance):
-        self.rect[1] += distance
+        self.fpos[1] += distance
+        self.rect[1] = self.fpos[1]
 
     def rotateLeft(self, angle):
         newAngle = self.rotAngle + angle;

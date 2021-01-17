@@ -21,6 +21,7 @@ enemyImageNames = ["images/enemyBlue3.png",
                    "images/enemyGreen2.png"]
 enemyStartPos = [[500, 400], [300, 400], [100, 400]]
 enemyTarget   = [[100, 600], [300, 600], [500, 600]]
+enemyHP       =  [ 1, 2, 3]
 enemySpeedData = [ 3, 2, 1]
 
 enemies = pygame.sprite.Group()
@@ -29,6 +30,7 @@ for i in range(0, numEnemy):
     enemy = window.createSprite(enemyImage, path[0][0], path[0][1])
     enemy.index = i
     enemy.targetIndex = 1
+    enemy.hitPoints = enemyHP[i]
     enemies.add(enemy)
 
 enemyBulletImage = Image("images/towerDefense_tile298.png")
@@ -39,13 +41,12 @@ clock = Clock()
 quitGame = False
 
 #ship parameters
-speed = 5
+speed = 5.
 bulletSpeed = 7
 lastTimeIFired = time.time()
 minFireTime = 0.5
 
 #enemy parameters
-enemyHitPoints = 3
 enemyBulletSpeed = 3
 lastTimeEnemyFired = [time.time(), time.time(), time.time()]
 minEnemyFireTime = 1.0
@@ -80,54 +81,40 @@ while quitGame == False:
     
     #enemy AI
     for enemy in enemies:        
-
         index       = enemy.index
-        enemySpeed  = enemySpeedData[index]
+        enemySpeed  = float(enemySpeedData[index])
         targetIndex = enemy.targetIndex;
         
-        targetX    = path[targetIndex][0]
-        targetY    = path[targetIndex][1]
+        targetX    = float(path[targetIndex][0])
+        targetY    = float(path[targetIndex][1])
 
-        enemyX = enemy.rect.centerx
-        enemyY = enemy.rect.centery
+        enemyX = enemy.fpos[0]
+        enemyY = enemy.fpos[1]
         #targetX = ship.rect.centerx
         #targetY = ship.rect.centery - 300
+   
 
-        isCloseToTargetX = False
-        isCloseToTargetY = False        
-
-        deltaX = enemy.rect.centerx - targetX
-        deltaY = enemy.rect.centerx - targetY
-
+        deltaX = float(targetX - enemyX)
+        deltaY = float(targetY - enemyY)
         dist = math.sqrt(deltaX*deltaX + deltaY*deltaY)
-        shiftX = 0.0
-        shiftY = 0.0
-        if dist>0.0:
-            shiftX = deltaX * enemySpeed/dist
-            shiftY = deltaY * enemySpeed/dist
         
+        if dist>enemySpeed: 
+            deltaX *= enemySpeed/dist
+            deltaY *= enemySpeed/dist
 
+            #enemy ship is initially rotated facing down. Angle 0 is considered facing right, so we need to add 90 deg
+            eAngle = VectorToAngle((deltaX, deltaY))            
+            enemy.setAngle(eAngle)            
         
-        if (enemy.rect.centerx - targetX) < -enemySpeed:
-            enemy.moveRight(shiftX)
-        elif (enemy.rect.centerx - targetX) > enemySpeed:
-            enemy.moveLeft(shiftX)
+            enemy.moveRight(deltaX)
+            enemy.moveDown(deltaY)
         else:
-            isCloseToTargetX = True
-
-        if (enemy.rect.centery - targetY) < -enemySpeed:
-            enemy.moveDown(shiftY)
-        elif (enemy.rect.centery - targetY) > enemySpeed:
-            enemy.moveUp(shiftY)
-        else:
-            isCloseToTargetY = True
-
-        if isCloseToTargetX and isCloseToTargetY:
+            print("enemy ", index, " target ", enemy.targetIndex, " reached")
             enemy.targetIndex += 1
             if enemy.targetIndex >= len(path):
                 enemy.kill()            
 
-        if enemyFire:
+        if False and enemyFire:
             currTime = time.time()
             elapsedTime = currTime - lastTimeEnemyFired[index]
             if elapsedTime > minEnemyFireTime:
@@ -152,12 +139,13 @@ while quitGame == False:
         quitGame = True
         
     # bullet VS enemy
-    collisionGroup2 = pygame.sprite.spritecollide(enemy, bullets, True, pygame.sprite.collide_circle_ratio(0.9))
-    collision2 = len(collisionGroup2)>0
-    if collision2:
-        enemyHitPoints-=1
-        if enemyHitPoints<=0:
-            enemy.kill()
+    for enemy in enemies:
+        collisionGroup2 = pygame.sprite.spritecollide(enemy, bullets, True, pygame.sprite.collide_circle_ratio(0.9))
+        collision2 = len(collisionGroup2)>0
+        if collision2:        
+            enemy.hitPoints-=1
+            if enemy.hitPoints<=0:
+                enemy.kill()
 
     # enemyBullets VS ship collision
     collisionGroup3 = pygame.sprite.spritecollide(ship, enemyBullets, False, pygame.sprite.collide_circle_ratio(0.9))
