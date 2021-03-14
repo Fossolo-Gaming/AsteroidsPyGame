@@ -133,7 +133,12 @@ class Sprite(pygame.sprite.DirtySprite):
     def setImage(self, image):
         self.image = image.image
         self.image0 = None
+        #x = self.rect.centerx
+        #y = self.rect.centery     
         self.rect = self.image.get_rect()
+        #self.fpos = [x, y]
+        #self.rect[0] = x
+        #self.rect[1] = y               
         self.dirty = 2
 
     def setAngle(self, angle):
