@@ -67,6 +67,11 @@ class Window():
         self.addSprite(sprite)
         return sprite
 
+    def createText(self, text, fontName, size, color, x, y):
+        sprite = TextSprite(text, fontName, size, color, (x,y))
+        self.addSprite(sprite)
+        return sprite
+
     def draw(self):
         self.sprites.clear(self.screen, self.background)        
         
@@ -168,6 +173,27 @@ class Sprite(pygame.sprite.DirtySprite):
     def rotateRight(self, angle):
         newAngle = self.rotAngle - angle;
         self.setAngle(newAngle)
+
+class TextSprite(pygame.sprite.DirtySprite):
+    # This sprite is used to write text on the screen
+    def __init__(self, text, fontName, size, color, pos):
+        pygame.sprite.DirtySprite.__init__(self)
+        
+        self.fontName = fontName
+        self.size = size
+        self.color = color
+        self.font = pygame.font.SysFont(self.fontName, size)
+        self.pos = pos
+        self.updateText(text)
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+        self.dirty = 2
+
+    def updateText(self, text):
+        self.image = self.font.render(text, True, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.pos  
+
 
 class Tileset:
     def __init__(self, tileNames):
@@ -371,5 +397,16 @@ class Grid():
 
         return False                    
  
+class Sound:
+    def __init__(self):
+        self.sounds = {}
 
+    def load(self, key, filename):
+        self.sounds[key] =  pygame.mixer.Sound(filename)
+
+    def play(self, key):
+        self.sounds[key].play()
+
+
+    
     

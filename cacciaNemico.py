@@ -3,6 +3,7 @@ import math
 
 window = Window(1024, 768, "images/background2.png")
 keyboard = Keyboard()
+sound = Sound()
 
 # Sprite creation
 shipImage = Image("images/playerShip2_blue.png")
@@ -36,6 +37,24 @@ for i in range(0, numEnemy):
 enemyBulletImage = Image("images/towerDefense_tile298.png")
 enemyBullets = pygame.sprite.Group()
 
+# dictionary for sounds filenames used in the game
+soundNames = { 'Fire':          "sound/laser.wav",
+               'Explosion' :    "sound/explosion.wav",
+               'AsteroidBreak': "sound/asteroidbreak.wav",
+               'PowerUp':       "sound/powerup.wav",
+               'Shield':        "sound/shield.wav",
+               'Bomb':          "sound/laser2.wav",
+               'PowerUp2':      "sound/powerup2.wav",
+               'Start':         "sound/start.wav",
+               'GameOver':      "sound/gameover.wav",
+               'Victory':       "sound/victory.wav"}
+#sounds = {}
+
+for key, filename in soundNames.items():
+    #sounds[key] = pygame.mixer.Sound(filename)
+    sound.load(key, filename)
+
+
 clock = Clock()
 
 quitGame = False
@@ -51,6 +70,8 @@ enemyBulletSpeed = 3
 lastTimeEnemyFired = [time.time(), time.time(), time.time()]
 minEnemyFireTime = 1.0
 enemyFire = True
+
+scoreText = window.createText("Gala-Fossolo", "Arial", 20, (255,0,0,255), 500,30)
 
 
 while quitGame == False:
@@ -72,6 +93,7 @@ while quitGame == False:
             bullet = window.createSprite(bulletImage, ship.rect.centerx, ship.rect.centery - 70)
             bullets.add(bullet)
             lastTimeIFired = time.time()
+            sound.play('Fire')
 
     #bullets movement
     for bullet in bullets:
@@ -137,6 +159,7 @@ while quitGame == False:
     collision = len(collisionGroup)>0
     if collision:
         quitGame = True
+        sound.play('Explosion')
         
     # bullet VS enemy
     for enemy in enemies:
@@ -146,6 +169,10 @@ while quitGame == False:
             enemy.hitPoints-=1
             if enemy.hitPoints<=0:
                 enemy.kill()
+                sound.play('Explosion')
+            else:
+                sound.play('AsteroidBreak')
+                
 
     # enemyBullets VS ship collision
     collisionGroup3 = pygame.sprite.spritecollide(ship, enemyBullets, False, pygame.sprite.collide_circle_ratio(0.9))
